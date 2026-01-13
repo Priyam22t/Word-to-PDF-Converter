@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Word to PDF Converter</title>
+
+<style>
+:root {
+  --primary: #6c7cff;
+  --primary-dark: #5563e5;
+  --bg: linear-gradient(135deg, #6c7cff, #8e5dd9);
+}
+
+* {
+  box-sizing: border-box;
+  font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+/* ================= NAVBAR ================= */
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 60px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  z-index: 100;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.logo span { color: var(--primary); }
+
+.nav-right a {
+  margin-left: 24px;
+  text-decoration: none;
+  color: #444;
+  font-weight: 500;
+}
+
+.nav-right a:hover { color: var(--primary); }
+
+body.dark .navbar { background: #1e1e1e; }
+body.dark .nav-right a { color: #ccc; }
+
+/* ================= BODY ================= */
+body {
+  margin: 0;
+  padding-top: 80px;
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== Dark Mode ===== */
+body.dark { background: #121212; }
+body.dark .card { background: #1e1e1e; color: white; }
+body.dark .subtitle { color: #aaa; }
+body.dark .upload-area { background: #2a2a2a; }
+body.dark .file-card { background: #2f2f2f; }
+
+/* ===== Card ===== */
+.card {
+  width: 480px;
+  max-width: 92%;
+  padding: 40px;
+  border-radius: 24px;
+  background: white;
+  box-shadow: 0 40px 90px rgba(0,0,0,0.25);
+  text-align: center;
+}
+
+/* ===== Text ===== */
+h1 { margin: 0; font-size: 30px; }
+.subtitle { margin-top: 8px; font-size: 14px; color: #666; }
+
+/* ===== Upload Area ===== */
+.upload-area {
+  margin-top: 30px;
+  padding: 28px;
+  border-radius: 18px;
+  background: #f6f7ff;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.upload-area.dragover {
+  background: #e8ebff;
+  box-shadow: 0 0 0 4px rgba(108,124,255,0.3);
+  animation: pulse 1s infinite;
+}
+
+/* Upload icon animation */
+.upload-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.animate-upload {
+  animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(108,124,255,0.4); }
+  70% { box-shadow: 0 0 0 12px rgba(108,124,255,0); }
+  100% { box-shadow: 0 0 0 0 rgba(108,124,255,0); }
+}
+
+/* ===== File Cards ===== */
+.file-list { margin-top: 16px; }
+
+.file-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: white;
+  border-radius: 12px;
+  font-size: 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.remove {
+  color: red;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* ===== Button ===== */
+button {
+  margin-top: 22px;
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  background: var(--primary);
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+button:disabled { background: #aaa; }
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #333;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 10px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: 0.4s;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ===== Footer ===== */
+.footer {
+  margin-top: 16px;
+  font-size: 12px;
+  color: white;
+  opacity: 0.7;
+}
+</style>
+</head>
+
+<body>
+
+<nav class="navbar">
+  <div class="logo">Word<span>To</span>PDF</div>
+  <div class="nav-right">
+    <a href="#">Home</a>
+    <a href="#">Features</a>
+    <a href="#">Contact</a>
+  </div>
+</nav>
+
+<div class="card">
+  <h1>Word → PDF</h1>
+  <div class="subtitle">Convert Word documents to PDF instantly</div>
+
+  <input type="file" id="fileInput" accept=".docx" multiple hidden />
+
+  <div class="upload-area" id="uploadArea">
+    <div class="upload-icon animate-upload" id="uploadIcon">📄</div>
+    <strong>Click to upload</strong> or drag & drop
+  </div>
+
+  <div class="file-list" id="fileList"></div>
+
+  <button id="convertBtn" disabled>Convert</button>
+
+  <!-- Dark mode button RESTORED -->
+  <button id="themeToggle" style="margin-top:10px;background:#ddd;color:#333">
+    Toggle Dark Mode
+  </button>
+</div>
+
+<div class="footer">Built with ❤️ by Priyam</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const uploadArea = document.getElementById("uploadArea");
+const fileInput = document.getElementById("fileInput");
+const fileList = document.getElementById("fileList");
+const convertBtn = document.getElementById("convertBtn");
+const toast = document.getElementById("toast");
+const themeToggle = document.getElementById("themeToggle");
+const uploadIcon = document.getElementById("uploadIcon");
+
+let files = [];
+
+const showToast = msg => {
+  toast.textContent = msg;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2500);
+};
+
+uploadArea.onclick = () => fileInput.click();
+
+/* Drag & Drop */
+["dragenter","dragover"].forEach(e =>
+  uploadArea.addEventListener(e, ev => {
+    ev.preventDefault();
+    uploadArea.classList.add("dragover");
+  })
+);
+
+["dragleave","drop"].forEach(e =>
+  uploadArea.addEventListener(e, ev => {
+    ev.preventDefault();
+    uploadArea.classList.remove("dragover");
+  })
+);
+
+uploadArea.addEventListener("drop", e => handleFiles(e.dataTransfer.files));
+fileInput.onchange = () => handleFiles(fileInput.files);
+
+function handleFiles(selected) {
+  uploadIcon.classList.remove("animate-upload");
+  for (let file of selected) {
+    if (!file.name.endsWith(".docx")) {
+      showToast("Only .docx files allowed");
+      continue;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("Max file size 5MB");
+      continue;
+    }
+    files.push(file);
+  }
+  renderFiles();
+}
+
+function renderFiles() {
+  fileList.innerHTML = "";
+  files.forEach((f, i) => {
+    const div = document.createElement("div");
+    div.className = "file-card";
+    div.innerHTML = `
+      <span>${f.name} (${(f.size/1024/1024).toFixed(1)}MB)</span>
+      <span class="remove" onclick="removeFile(${i})">✖</span>`;
+    fileList.appendChild(div);
+  });
+  convertBtn.disabled = files.length === 0;
+}
+
+window.removeFile = i => {
+  files.splice(i, 1);
+  renderFiles();
+};
+
+convertBtn.onclick = async () => {
+  convertBtn.textContent = "Converting...";
+  convertBtn.disabled = true;
+
+  const formData = new FormData();
+  formData.append("file", files[0]);
+
+  const res = await fetch("http://localhost:3000/convert", {
+    method: "POST",
+    body: formData
+  });
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "converted.pdf";
+  a.click();
+
+  showToast("Conversion successful!");
+  convertBtn.textContent = "Convert";
+  convertBtn.disabled = false;
+};
+
+themeToggle.onclick = () => document.body.classList.toggle("dark");
+</script>
+
+</body>
+</html>
